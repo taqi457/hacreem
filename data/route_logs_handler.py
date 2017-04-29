@@ -17,8 +17,7 @@ class RouteLogsHandler(object):
 
         for chunk in pd.read_csv('%s/%s'%(
             cls.DATA_ROOT, fname), chunksize = chunk_size, low_memory = True):            
-            
-            service_type = []
+
             bulk = cls.chunk_feature_enhancement(chunk)
 
         result = bulk.execute()
