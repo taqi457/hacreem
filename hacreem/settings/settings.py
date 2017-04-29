@@ -16,6 +16,11 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+from os.path import abspath, dirname
+DJANGO_ROOT = dirname(dirname(dirname(abspath(__file__))))
+PROJECT_ROOT = dirname(DJANGO_ROOT)
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
