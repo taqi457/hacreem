@@ -14,7 +14,9 @@ def dbscan_labels():
     for doc in cursor:
         location_list.append([doc['pick_up_lat'], doc['pick_up_lng']])
 
-    db = DBSCAN(eps=0.5 / 6371., min_samples=5, algorithm='ball_tree', metric='haversine').fit(np.radians(location_list))
+    db = DBSCAN(
+    	eps=0.5 / 6371., min_samples=5, algorithm='ball_tree', metric='haversine', n_jobs=-1).fit(
+    		np.radians(location_list))
 
     location_list = []
 
