@@ -2,11 +2,11 @@ import random
 import pymongo
 import pandas as pd
 
-from hacreem.settings.settings import DJANGO_ROOT
-from hacreem.settings.constants import *
+from hacreem.settings import *
 
 client = pymongo.MongoClient(MONGO_DB_IP, MONGO_DB_PORT)
 mydb = client['hacareem']
+
 
 class RouteLogsHandler(object):
 
