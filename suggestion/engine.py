@@ -10,8 +10,18 @@ def dbscan_labels():
 
 	List_ = []
 
-	for doc in mydb.ride_logs.find():
+	cursor = list(mydb.ride_logs.find())
+	for doc in cursor:
 		List_.append([doc['pick_up_lat'], doc['pick_up_lng']])
 
 	db = DBSCAN(eps=0.5/6371., min_samples=5, algorithm = 'ball_tree', metric = 'haversine').fit(np.radians(List_))	
-	return db.labels_
+	
+	List_ = []
+
+	for doc, cursor in zip(cursor, list(db.labels_)):
+		output_dict = {'cursor':cursor}
+		for key in ['pick_up_lat', 'pick_up_lng']:
+			output_dict[key] = doc[key]
+		List_.append(output_dict)
+
+	return List_
