@@ -49,8 +49,8 @@ def add_business(data):
 
 def get_suggested_business(lat, long):
     client = pymongo.MongoClient(MONGO_DB_IP, MONGO_DB_PORT)
-    mydb = client['hacareem']
-    cluster = mydb.clusters.find({
+    mydb = client['retailer']
+    cluster = mydb.cluster_feature.find({
         'area': {'$geoIntersects': {'$geometry': {'type': 'Point', 'coordinates': [lat, long]}}}
     }).limit(1)
     return list(cluster)
@@ -64,9 +64,9 @@ def make_feature_location():
     for d in data:
         result.append({
             'type': 'Feature',
-            'geometry': {
+            'location': {
                 'type': 'Point',
-                'coordinates': [d['retailer_lat'], d['retailer_long']]
+                'coordinates': [d['retailer_long'], d['retailer_lat']]
             },
             'properties': {
                 'city': 'Karachi',
@@ -82,10 +82,10 @@ def make_feature_location():
 def make_dbscan_model():
     client = pymongo.MongoClient(MONGO_DB_IP, MONGO_DB_PORT)
     mydb = client['retailer']
-    data = list(mydb.retailer_feature.find(None, {'properties.ad': 1, 'geometry.coordinates': 1}))
+    data = list(mydb.retailer_feature.find(None, {'properties.ad': 1, 'location.coordinates': 1}))
     location = []
     for d in data:
-        location.append(d['geometry']['coordinates'])
+        location.append(d['location']['coordinates'])
 
     db = DBSCAN(eps=1 / 6371., min_samples=5, algorithm='ball_tree', metric='haversine').fit(np.radians(location))
 
@@ -105,9 +105,9 @@ def make_dbscan_model():
         item['locations'].append(item['locations'][0])
         cluster_array.append({
             'type': 'Feature',
-            'geometry': {
+            'area': {
                 "type": "Polygon",
-                "coordinates": item['locations']
+                "coordinates": [item['locations']]
             },
             'properties': {
                 'cluster_id': key,
