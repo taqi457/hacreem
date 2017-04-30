@@ -1,0 +1,29 @@
+https://datascience.stackexchange.com/questions/761/clustering-geo-location-coordinates-lat-long-pairs
+
+K-means is not the most appropriate algorithm here.
+
+The reason is that k-means is designed to minimize variance. This is, of course, appearling from a statistical and signal procssing point of view, but your data is not "linear".
+
+Since your data is in latitude, longitude format, you should use an algorithm that can handle arbitrary distance functions, in particular geodetic distance functions. Hierarchical clustering, PAM, CLARA, and DBSCAN are popular examples of this.
+
+The problems of k-means are easy to see when you consider points close to the +-180 degrees wrap-around. Even if you hacked k-means to use Haversine distance, in the update step when it recomputes the mean the result will be badly screwed. Worst case is, k-means will never converge!
+
+http://stackoverflow.com/questions/24024510/clustering-500-000-geospatial-points-in-python
+
+Older versions of DBSCAN in scikit learn would compute a complete distance matrix.
+
+Unfortunately, computing a distance matrix needs O(n^2) memory, and that is probably where you run out of memory.
+
+Newer versions (which version do you use?) of scikit learn should be able to work without a distance matrix; at least when using an index. At 500.000 objects, you do want to use index acceleration, as this reduces runtime from O(n^2) to O(n log n).
+
+I don't know how well scikit learn supports geodetic distance in its indexes though. ELKI is the only tool I know that can use R*-tree indexes for accelerating geodetic distance; making it extremely fast for this task (in particular when bulk-loading the index). You should give it a try.
+
+Have a look at the Scikit learn indexing documentation, and try setting algorithm='ball_tree'.
+
+mydb.ride_logs.distinct(['pick_up_lat', 'pick_up_lng'])
+result = mydb.ride_logs.aggregate( 
+            [
+                {"$group": { "_id": {"pick_up_lat": "$pick_up_lat", "pick_up_lng": "$pick_up_lng" } } }
+            ]
+        );
+printjson(result);
