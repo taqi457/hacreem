@@ -27,26 +27,6 @@ def dbscan_labels():
         location_list.append(output_dict)
 
 
-def add_business(data):
-    business_list = []
-    for business in data:
-        business_list.append({
-            'type': 'Feature',
-            'geometry': {
-                'type': 'Point',
-                'coordinates': [business['lat'], business['long']]
-            },
-            'properties': {
-                'city': 'Karachi',
-                'type': 'business',
-                'business_type': business['restaurants']
-            }
-        })
-    client = pymongo.MongoClient(MONGO_DB_IP, MONGO_DB_PORT)
-    mydb = client['hacareem']
-    mydb.businesses.insert_many(business_list)
-
-
 def get_suggested_business(lat, long):
     client = pymongo.MongoClient(MONGO_DB_IP, MONGO_DB_PORT)
     mydb = client['retailer']
@@ -63,18 +43,16 @@ def make_feature_location():
     result = []
     for d in data:
         result.append({
-            'type': 'Feature',
             'location': {
                 'type': 'Point',
                 'coordinates': [d['retailer_long'], d['retailer_lat']]
             },
-            'properties': {
-                'city': 'Karachi',
-                'type': 'business',
-                'business_type': d['retailer_category'],
-                'name': d['retailer_name'],
-                'ad': d['retailer_name'].split(' ')[0] + " has 30% discount! Avail Now"
-            }
+            'city': 'Karachi',
+            'type': 'business',
+            'business_type': d['retailer_category'],
+            'name': d['retailer_name'],
+            'ad': d['retailer_name'].split(' ')[0] + " has 30% discount! Avail Now"
+
         })
     mydb.retailer_feature.insert_many(result)
 
@@ -82,7 +60,7 @@ def make_feature_location():
 def make_dbscan_model():
     client = pymongo.MongoClient(MONGO_DB_IP, MONGO_DB_PORT)
     mydb = client['retailer']
-    data = list(mydb.retailer_feature.find(None, {'properties.ad': 1, 'location.coordinates': 1}))
+    data = list(mydb.retailer_feature.find(None, {'ad': 1, 'location.coordinates': 1}))
     location = []
     for d in data:
         location.append(d['location']['coordinates'])
@@ -93,15 +71,16 @@ def make_dbscan_model():
     for i in xrange(len(db.labels_)):
         if clusters.get(str(db.labels_[i])) is None:
             clusters[str(db.labels_[i])] = dict(ads=[], locations=[])
-            clusters[str(db.labels_[i])]['ads'].append(data[i]['properties']['ad'])
+            clusters[str(db.labels_[i])]['ads'].append(data[i]['ad'])
             clusters[str(db.labels_[i])]['locations'].append(location[i])
         else:
-            clusters[str(db.labels_[i])]['ads'].append(data[i]['properties']['ad'])
+            clusters[str(db.labels_[i])]['ads'].append(data[i]['ad'])
             clusters[str(db.labels_[i])]['locations'].append(location[i])
 
     clusters.pop('-1', None)
     cluster_array = []
     for key, item in clusters.items():
+        item['locations'].sort(key=lambda x: x[0])
         item['locations'].append(item['locations'][0])
         cluster_array.append({
             'area': {
