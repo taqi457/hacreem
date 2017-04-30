@@ -104,23 +104,20 @@ def make_dbscan_model():
     for key, item in clusters.items():
         item['locations'].append(item['locations'][0])
         cluster_array.append({
-            'type': 'Feature',
             'area': {
                 "type": "Polygon",
                 "coordinates": [item['locations']]
             },
-            'properties': {
-                'cluster_id': key,
-                'ads': item['ads']
-            }
+            'cluster_id': key,
+            'ads': item['ads']
         })
     mydb.cluster_feature.insert_many(cluster_array)
 
 
-def product_recommendation_engine(user_id, lat, lng, gender, age_range, cab_service):
+def product_recommendation_engine(user_id, lng, lat, gender, age_range, cab_service):
     client = pymongo.MongoClient(MONGO_DB_IP, MONGO_DB_PORT)
     mydb = client['hacareem']
-    retailer_info = get_suggested_business(lat, lng)
+    retailer_info = get_suggested_business(lng, lat)
     # dummy
     user_info = {'gender': 'Male', 'age_range': 31, 'user_id': 'bbd525a64d', 'cab_service': 'Business'}
     recommendations = []
